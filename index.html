@@ -108,6 +108,27 @@
       text-shadow: none;
       transition: color 30s ease, opacity 10s ease;
     }
+    .title-phone { display: none; }
+    @media (max-width: 640px) {
+      .title-full { display: none; }
+      .title-phone {
+        display: inline-grid;
+        grid-template-columns: max-content max-content;
+        column-gap: 0;
+        row-gap: 0.22em;
+        justify-items: start;
+        letter-spacing: 0;
+        line-height: 1.15;
+      }
+      .title-lead { grid-column: 1; grid-row: 1; }
+      .title-rest { grid-column: 2; grid-row: 1; }
+      .title-dream { grid-column: 2; grid-row: 2; }
+      .title-phone > span > span {
+        display: inline-block;
+        letter-spacing: 0.3em;
+        margin-right: -0.3em;
+      }
+    }
 
     .dream-text {
       position: fixed;
@@ -319,7 +340,7 @@
   <div id="dream-scene"></div>
   <canvas id="stars-canvas"></canvas>
 
-  <h1 class="title" id="title">in your dream...</h1>
+  <h1 class="title" id="title"><span class="title-full">in your dream...</span><span class="title-phone"><span class="title-lead"><span>in y</span></span><span class="title-rest"><span>our</span></span><span class="title-dream"><span>dream...</span></span></span></h1>
   <p class="dream-text" id="dream-text">daydreaming</p>
   <p class="final-question" id="final-question"></p>
   <p class="tap-hint" id="tap-hint">tap</p>
@@ -367,7 +388,7 @@
 
     function initStars() {
       stars = [];
-      const count = Math.floor((canvas.width * canvas.height) / 2400);
+      const count = Math.floor((canvas.width * canvas.height) / 2400 * 0.8);
       for (let i = 0; i < count; i++) {
         stars.push({
           x: Math.random() * canvas.width,
