@@ -179,7 +179,7 @@
     }
     .tap-hint.visible {
       opacity: 1;
-      animation: tap-pulse 1.5s ease-in-out infinite;
+      animation: tap-pulse 4.5s ease-in-out infinite;
     }
     @keyframes tap-pulse {
       0%, 100% { opacity: 0.5; }
@@ -275,7 +275,7 @@
       vertical-align: -0.12em;
       background: rgba(150, 144, 176, 0.95);
       box-shadow: 0 0 8px 1px rgba(196, 186, 224, 0.55);
-      animation: caret-glow 1.2s ease-in-out infinite;
+      animation: caret-glow 3.6s ease-in-out infinite;
     }
     .dream-write-mirror:not(.has-text) .dream-caret {
       margin-left: 0;
@@ -624,6 +624,7 @@
       document.getElementById('dream-actions').classList.remove('visible');
 
       const title = document.getElementById('title');
+      title.style.transition = '';
       title.style.opacity = '1';
       title.style.color = 'rgba(150, 144, 176, 0.95)';
       document.getElementById('dream-text').style.opacity = '0';
@@ -828,8 +829,10 @@
         document.getElementById('dream-scene').style.opacity = dreamFadeIn;
         document.getElementById('stars-canvas').style.opacity = 1 - dreamFadeIn;
         document.getElementById('dream-text').style.opacity = dreamFadeIn;
-        document.getElementById('title').style.color = 'rgba(150, 144, 176, 0.95)';
-        document.getElementById('title').style.opacity = 0.8;
+        const title = document.getElementById('title');
+        title.style.transition = 'opacity 0.4s ease, color 30s ease';
+        title.style.color = 'rgba(150, 144, 176, 0.95)';
+        title.style.opacity = '0';
       }
 
       drawSky();
