@@ -246,6 +246,36 @@
       color: rgba(255, 255, 255, 0.7);
       letter-spacing: 0.1em;
     }
+    .dream-input-hint.hidden {
+      display: none;
+    }
+    .dream-actions {
+      position: fixed;
+      left: 50%;
+      top: calc(50% + 25vmin + 28px);
+      transform: translateX(-50%);
+      z-index: 12;
+      display: none;
+      gap: 14px;
+      align-items: center;
+    }
+    .dream-actions.visible {
+      display: flex;
+    }
+    .dream-actions button {
+      font-family: 'Shippori Mincho', serif;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      letter-spacing: 0.16em;
+      color: rgba(255, 236, 242, 0.95);
+      background: rgba(40, 18, 36, 0.35);
+      border: 1px solid rgba(210, 150, 175, 0.65);
+      border-radius: 999px;
+      padding: 0.55em 1.35em;
+      cursor: pointer;
+    }
+    .dream-actions button:hover {
+      background: rgba(120, 60, 90, 0.45);
+    }
     #dream-textarea-overlay {
       position: absolute;
       left: 0;
@@ -300,6 +330,10 @@
     <textarea id="dream-textarea" placeholder="Write your dream..."></textarea>
     <p class="dream-input-hint" id="dream-input-hint">Click to write your dream</p>
     <div id="dream-textarea-overlay"></div>
+  </div>
+  <div class="dream-actions" id="dream-actions">
+    <button type="button" id="dream-stop">Stop</button>
+    <button type="button" id="dream-back">Back</button>
   </div>
 
   <div class="progress-bar">
@@ -462,6 +496,79 @@
 
     // ========== Tap for navy ripple + dream input (once only) ==========
     let rippleCreated = false;
+    let dreamInputAbort = null;
+    let roseTimer = null;
+    let audioTimer = null;
+    let featherStepsTimer = null;
+
+    function showRoseControls() {
+      document.getElementById('dream-input-hint').classList.add('hidden');
+      document.getElementById('dream-actions').classList.add('visible');
+    }
+
+    function stopDreamPlayback() {
+      clearTimeout(audioTimer);
+      clearInterval(featherStepsTimer);
+      clearInterval(featherInterval);
+      document.querySelectorAll('.feather').forEach((el) => el.remove());
+      const audio = document.getElementById('dream-audio');
+      if (audio) audio.pause();
+    }
+
+    function returnToStart() {
+      if (dreamInputAbort) {
+        dreamInputAbort.abort();
+        dreamInputAbort = null;
+      }
+      clearTimeout(roseTimer);
+      if (animationId) cancelAnimationFrame(animationId);
+      clearInterval(shootingStarInterval);
+      stopDreamPlayback();
+
+      document.querySelectorAll('.shooting-star, .ripple-container').forEach((el) => el.remove());
+
+      const audio = document.getElementById('dream-audio');
+      if (audio) audio.currentTime = 0;
+
+      const wrapper = document.getElementById('dream-input-wrapper');
+      const textarea = document.getElementById('dream-textarea');
+      const overlay = document.getElementById('dream-textarea-overlay');
+      wrapper.style.display = 'none';
+      wrapper.style.opacity = '0';
+      textarea.value = '';
+      textarea.classList.remove('active', 'cursor-hidden');
+      overlay.classList.remove('visible');
+      overlay.style.opacity = '0';
+      document.getElementById('dream-input-hint').classList.remove('hidden');
+      document.getElementById('dream-actions').classList.remove('visible');
+
+      const title = document.getElementById('title');
+      title.style.opacity = '1';
+      title.style.color = 'rgba(255,255,255,0.9)';
+      document.getElementById('dream-text').style.opacity = '0';
+      const question = document.getElementById('final-question');
+      question.style.opacity = '0';
+      question.textContent = '';
+      document.getElementById('tap-hint').classList.remove('visible');
+      document.getElementById('progress').style.width = '0%';
+      document.getElementById('progress').parentElement.style.opacity = '1';
+      document.getElementById('stars-canvas').style.opacity = '1';
+      document.getElementById('dream-scene').style.opacity = '0';
+      document.getElementById('sunrise-overlay').style.opacity = '0';
+
+      document.body.classList.remove('dream-writing');
+      document.body.removeEventListener('click', onTapForRipple);
+      document.body.removeEventListener('touchstart', onTapForRipple);
+
+      window.feathersStarted = false;
+      featherIntervalMs = 2500;
+      rippleCreated = false;
+      startTime = null;
+
+      startShootingStars();
+      animationId = requestAnimationFrame(tick);
+    }
+
     function onTapForRipple(e) {
       if (rippleCreated) return;
       rippleCreated = true;
@@ -472,6 +579,8 @@
       document.body.removeEventListener('click', onTapForRipple);
       document.body.removeEventListener('touchstart', onTapForRipple);
       document.body.classList.add('dream-writing');
+      document.getElementById('dream-input-hint').classList.remove('hidden');
+      document.getElementById('dream-actions').classList.remove('visible');
 
       const rippleCenterX = window.innerWidth / 2;
       const rippleCenterY = window.innerHeight / 2;
@@ -536,17 +645,20 @@
         cursorShownOnce = true;
         if (!audioTimerStarted) {
           audioTimerStarted = true;
-          setTimeout(() => {
+          audioTimer = setTimeout(() => {
             const audio = document.getElementById('dream-audio');
             if (audio) audio.play().catch(() => {});
           }, 12000);
         }
       };
-      overlay.addEventListener('click', activateTextarea);
+      if (dreamInputAbort) dreamInputAbort.abort();
+      dreamInputAbort = new AbortController();
+      const signal = dreamInputAbort.signal;
+      overlay.addEventListener('click', activateTextarea, { signal });
       overlay.addEventListener('touchend', (e) => {
         e.preventDefault();
         activateTextarea();
-      }, { passive: false });
+      }, { passive: false, signal });
       let firstCharTriggered = false;
       textarea.addEventListener('input', () => {
         if (textarea.value.length > 0) {
@@ -555,27 +667,28 @@
         if (textarea.value.length === 1 && !firstCharTriggered) {
           firstCharTriggered = true;
           let step = 0;
-          const featherSteps = setInterval(() => {
+          featherStepsTimer = setInterval(() => {
             step++;
             const newInterval = Math.max(1250, 2500 - step * 125);
             updateFeatherInterval(newInterval);
-            if (step >= 10) clearInterval(featherSteps);
+            if (step >= 10) clearInterval(featherStepsTimer);
           }, 2000);
-          setTimeout(() => {
+          roseTimer = setTimeout(() => {
+            showRoseControls();
             pinkOverlay.animate([
               { opacity: 0 },
               { opacity: 1 }
             ], { duration: 7500, easing: 'ease-in-out', fill: 'forwards' });
           }, 15000);
         }
-      });
+      }, { signal });
       textarea.addEventListener('blur', () => {
         if (!textarea.readOnly) {
           textarea.classList.remove('active');
           overlay.classList.add('visible');
           cursorShownOnce = false;
         }
-      });
+      }, { signal });
     }
 
     // ========== Main timeline ==========
@@ -640,6 +753,8 @@
     }
 
     // ========== Start ==========
+    document.getElementById('dream-stop').addEventListener('click', stopDreamPlayback);
+    document.getElementById('dream-back').addEventListener('click', returnToStart);
     window.addEventListener('resize', resize);
     resize();
     startShootingStars();
