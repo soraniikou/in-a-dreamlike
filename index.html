@@ -361,15 +361,19 @@
     .dream-actions {
       position: fixed;
       left: 50%;
-      top: calc(50% + 25vmin + 78px);
+      top: calc(50% + 25vmin + 22px);
       transform: translateX(-50%);
       z-index: 12;
-      display: none;
+      display: flex;
       gap: 14px;
       align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.9s ease;
     }
     .dream-actions.visible {
-      display: flex;
+      opacity: 1;
+      pointer-events: auto;
     }
     .dream-actions button {
       font-family: 'Shippori Mincho', serif;
@@ -604,10 +608,25 @@
     let roseTimer = null;
     let audioTimer = null;
     let featherStepsTimer = null;
+    let activePinkOverlay = null;
+    let roseShown = false;
 
     function showRoseControls() {
       document.getElementById('dream-input-hint').classList.add('hidden');
       document.getElementById('dream-actions').classList.add('visible');
+    }
+
+    function showStopScreen() {
+      clearTimeout(roseTimer);
+      document.getElementById('dream-next').classList.remove('visible');
+      showRoseControls();
+      if (activePinkOverlay && !roseShown) {
+        roseShown = true;
+        activePinkOverlay.animate([
+          { opacity: 0 },
+          { opacity: 1 }
+        ], { duration: 7500, easing: 'ease-in-out', fill: 'forwards' });
+      }
     }
 
     function stopDreamPlayback() {
@@ -673,6 +692,8 @@
       window.feathersStarted = false;
       featherIntervalMs = 2500;
       rippleCreated = false;
+      roseShown = false;
+      activePinkOverlay = null;
       startTime = null;
 
       startShootingStars();
@@ -714,6 +735,7 @@
 
       const pinkOverlay = document.createElement('div');
       pinkOverlay.className = 'ripple-pink-overlay';
+      activePinkOverlay = pinkOverlay;
       pinkOverlay.style.left = '0';
       pinkOverlay.style.top = '0';
 
@@ -797,13 +819,7 @@
             updateFeatherInterval(newInterval);
             if (step >= 10) clearInterval(featherStepsTimer);
           }, 2000);
-          roseTimer = setTimeout(() => {
-            showRoseControls();
-            pinkOverlay.animate([
-              { opacity: 0 },
-              { opacity: 1 }
-            ], { duration: 7500, easing: 'ease-in-out', fill: 'forwards' });
-          }, 15000);
+          roseTimer = setTimeout(showStopScreen, 15000);
         }
       }, { signal });
       textarea.addEventListener('blur', () => {
@@ -877,6 +893,7 @@
     }
 
     // ========== Start ==========
+    document.getElementById('dream-next').addEventListener('click', showStopScreen);
     document.getElementById('dream-stop').addEventListener('click', stopDreamPlayback);
     document.getElementById('dream-back').addEventListener('click', returnToStart);
     window.addEventListener('resize', resize);
