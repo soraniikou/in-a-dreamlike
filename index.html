@@ -54,6 +54,16 @@
       opacity: 0;
       pointer-events: none;
       z-index: 3;
+      transition: background 1.6s ease;
+    }
+    /* tap to begin and dream writing */
+    #dream-scene.deep-navy {
+      background: radial-gradient(
+        ellipse at 50% 100%,
+        #1a3058 0%,
+        #0e1c38 48%,
+        #081222 100%
+      );
     }
 
     /* Stars canvas */
@@ -136,7 +146,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
       font-size: clamp(1.2rem, 3vw, 1.8rem);
-      color: rgba(60, 90, 130, 0.95);
+      color: rgba(226, 234, 248, 0.95);
       letter-spacing: 0.15em;
       z-index: 6;
       opacity: 0;
@@ -151,7 +161,7 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: clamp(0.9rem, 2vw, 1.2rem);
-      color: rgba(60, 90, 130, 0.7);
+      color: rgba(210, 222, 242, 0.85);
       letter-spacing: 0.2em;
       z-index: 6;
       opacity: 0;
@@ -342,7 +352,7 @@
 
     function initStars() {
       stars = [];
-      const count = Math.floor((canvas.width * canvas.height) / 800);
+      const count = Math.floor((canvas.width * canvas.height) / 2400);
       for (let i = 0; i < count; i++) {
         stars.push({
           x: Math.random() * canvas.width,
@@ -450,6 +460,7 @@
       const text = 'What dream do you want to live for?';
       const el = document.getElementById('final-question');
       const tapHint = document.getElementById('tap-hint');
+      document.getElementById('dream-scene').classList.add('deep-navy');
       document.getElementById('progress').parentElement.style.opacity = '0';
       el.style.opacity = '1';
       el.textContent = '';
