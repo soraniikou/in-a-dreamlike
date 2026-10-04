@@ -307,7 +307,7 @@
   </div>
 
   <script>
-    const DURATION_INTRO = 30;      // in your dream... → daydreaming (starry sky → sunrise in 30 sec)
+    const DURATION_INTRO = 15;      // in your dream... → daydreaming (starry sky → feathers in 15 sec)
     const DURATION_FEATHERS = 60;   // Angel feathers fall for 1 minute
     const DURATION_TOTAL = DURATION_INTRO + DURATION_FEATHERS;
     let startTime = null;
@@ -565,8 +565,8 @@
             pinkOverlay.animate([
               { opacity: 0 },
               { opacity: 1 }
-            ], { duration: 15000, easing: 'ease-in-out', fill: 'forwards' });
-          }, 30000);
+            ], { duration: 7500, easing: 'ease-in-out', fill: 'forwards' });
+          }, 15000);
         }
       });
       textarea.addEventListener('blur', () => {
@@ -583,9 +583,9 @@
       if (!startTime) startTime = timestamp;
       const elapsed = (timestamp - startTime) / 1000;
 
-      // 0-30 sec: in your dream... (starry sky → sunrise), then daydreaming
-      // 30-90 sec: daydreaming (angel feathers for 1 minute)
-      // 90 sec+: question display
+      // 0-15 sec: in your dream... (starry sky → sunrise), then daydreaming
+      // 15-75 sec: daydreaming (angel feathers for 1 minute)
+      // 75 sec+: question display
 
       const progressIntro = Math.min(elapsed / DURATION_INTRO, 1);
       const inDreamScene = elapsed >= DURATION_INTRO;
@@ -602,7 +602,7 @@
       }
 
       if (!inDreamScene) {
-        // 0-30 sec: starry sky → sunrise
+        // 0-15 sec: starry sky → sunrise
         if (progressIntro < 0.75) {
           document.getElementById('sunrise-overlay').style.opacity = 0;
           document.getElementById('dream-scene').style.opacity = 0;
