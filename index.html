@@ -228,8 +228,8 @@
     .dream-input-wrapper {
       position: absolute;
       left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      top: calc(50% - 5.25rem);
+      transform: translateX(-50%);
       width: 80%;
       max-width: 360px;
       z-index: 8;
@@ -239,26 +239,77 @@
       gap: 8px;
       pointer-events: auto;
     }
-    #dream-textarea {
+    .dream-prompt {
+      font-family: 'Shippori Mincho', serif;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      color: rgba(150, 144, 176, 0.72);
+      text-align: center;
+      letter-spacing: 0.1em;
+      line-height: 1.8;
+    }
+    .dream-write-space {
       position: relative;
       width: 100%;
-      min-height: 80px;
-      padding: 16px;
+      min-height: clamp(5.75rem, 16vmin, 9rem);
+      margin-top: 0.35rem;
+    }
+    .dream-write-mirror {
+      width: 100%;
+      min-height: clamp(5.75rem, 16vmin, 9rem);
+      padding: 0.35rem 0.4rem 1rem;
       font-family: 'Shippori Mincho', serif;
       font-size: clamp(1rem, 2.5vw, 1.3rem);
       color: rgba(150, 144, 176, 0.95);
       text-align: center;
+      letter-spacing: 0.1em;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-word;
+      pointer-events: none;
+    }
+    .dream-caret {
+      display: inline-block;
+      width: 1px;
+      height: 1.05em;
+      margin-left: 0.12em;
+      vertical-align: -0.12em;
+      background: rgba(150, 144, 176, 0.95);
+      box-shadow: 0 0 8px 1px rgba(196, 186, 224, 0.55);
+      animation: caret-glow 1.2s ease-in-out infinite;
+    }
+    .dream-write-mirror:not(.has-text) .dream-caret {
+      margin-left: 0;
+    }
+    @keyframes caret-glow {
+      0%, 100% {
+        opacity: 0.2;
+        box-shadow: 0 0 2px rgba(186, 176, 214, 0.15);
+      }
+      50% {
+        opacity: 1;
+        box-shadow: 0 0 10px 2px rgba(206, 196, 230, 0.8);
+      }
+    }
+    #dream-textarea {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      padding: 0.35rem 0.4rem 1rem;
+      font-family: 'Shippori Mincho', serif;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      color: transparent;
+      caret-color: transparent;
+      text-align: center;
       background: transparent;
       border: none;
       outline: none;
-      resize: vertical;
+      resize: none;
       letter-spacing: 0.1em;
       line-height: 1.8;
       pointer-events: none;
       cursor: default;
-    }
-    #dream-textarea::placeholder {
-      color: rgba(150, 144, 176, 0.72);
     }
     #dream-textarea.active {
       pointer-events: auto;
@@ -305,10 +356,7 @@
     }
     #dream-textarea-overlay {
       position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      min-height: 140px;
+      inset: 0;
       z-index: 9;
       cursor: text;
       pointer-events: none;
@@ -354,9 +402,13 @@
     <source src="3月14日（23-11）.m4a" type="audio/mp4">
   </audio>
   <div class="dream-input-wrapper" id="dream-input-wrapper">
-    <textarea id="dream-textarea" placeholder="Write your dream… or simply stay."></textarea>
+    <p class="dream-prompt" id="dream-prompt">Write your dream… or simply stay.</p>
     <p class="dream-input-hint" id="dream-input-hint">Click, only if you wish</p>
-    <div id="dream-textarea-overlay"></div>
+    <div class="dream-write-space" id="dream-write-space">
+      <div class="dream-write-mirror" id="dream-write-mirror" aria-hidden="true"><span id="dream-write-text"></span><span class="dream-caret" id="dream-caret"></span></div>
+      <textarea id="dream-textarea" aria-label="Write your dream"></textarea>
+      <div id="dream-textarea-overlay"></div>
+    </div>
   </div>
   <div class="dream-actions" id="dream-actions">
     <button type="button" id="dream-stop">Stop</button>
@@ -563,6 +615,8 @@
       wrapper.style.display = 'none';
       wrapper.style.opacity = '0';
       textarea.value = '';
+      document.getElementById('dream-write-text').textContent = '';
+      document.getElementById('dream-write-mirror').classList.remove('has-text');
       textarea.classList.remove('active', 'cursor-hidden');
       overlay.classList.remove('visible');
       overlay.style.opacity = '0';
@@ -626,6 +680,8 @@
       ripple.style.top = '0';
       ripple.style.width = '0';
       ripple.style.height = '0';
+      ripple.style.pointerEvents = 'auto';
+      ripple.style.cursor = 'text';
 
       const pinkOverlay = document.createElement('div');
       pinkOverlay.className = 'ripple-pink-overlay';
@@ -649,6 +705,8 @@
       const textarea = document.getElementById('dream-textarea');
       const overlay = document.getElementById('dream-textarea-overlay');
       textarea.value = '';
+      document.getElementById('dream-write-text').textContent = '';
+      document.getElementById('dream-write-mirror').classList.remove('has-text');
       textarea.classList.remove('active');
       wrapper.style.display = 'flex';
       wrapper.style.opacity = '0';
@@ -686,8 +744,15 @@
         e.preventDefault();
         activateTextarea();
       }, { passive: false, signal });
+      ripple.addEventListener('click', activateTextarea, { signal });
+      ripple.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        activateTextarea();
+      }, { passive: false, signal });
       let firstCharTriggered = false;
       textarea.addEventListener('input', () => {
+        document.getElementById('dream-write-text').textContent = textarea.value;
+        document.getElementById('dream-write-mirror').classList.toggle('has-text', textarea.value.length > 0);
         if (textarea.value.length > 0) {
           textarea.classList.add('cursor-hidden');
         }
