@@ -176,9 +176,13 @@
       z-index: 6;
       opacity: 0;
       transition: opacity 0.8s ease;
+      border: 1px solid rgba(210, 222, 242, 0.85);
+      border-radius: 999px;
+      padding: 0.55em 1.7em;
     }
     .tap-hint.visible {
       opacity: 1;
+      cursor: pointer;
       animation: tap-pulse 4.5s ease-in-out infinite;
     }
     @keyframes tap-pulse {
