@@ -39,31 +39,14 @@
       z-index: 2;
     }
 
-    /* Dream scene (bright blue sky like a photo) */
+    /* Dream scene */
     #dream-scene {
       position: fixed;
       inset: 0;
-      background: linear-gradient(
-        to bottom,
-        #87CEEB 0%,
-        #B0E0E6 30%,
-        #ADD8E6 60%,
-        rgba(180, 200, 230, 0.95) 85%,
-        rgba(200, 210, 240, 0.9) 100%
-      );
+      background: linear-gradient(to bottom, #0b1026 0%, #141a3a 40%, #1d1b3f 75%, #2a1f45 100%);
       opacity: 0;
       pointer-events: none;
       z-index: 3;
-      transition: background 1.6s ease;
-    }
-    /* tap to begin and dream writing */
-    #dream-scene.deep-navy {
-      background: radial-gradient(
-        ellipse at 50% 100%,
-        #1a3058 0%,
-        #0e1c38 48%,
-        #081222 100%
-      );
     }
 
     /* Stars canvas */
@@ -104,7 +87,7 @@
     }
     /* Angel feathers when writing dream (soft pink) */
     body.dream-writing .feather {
-      background: linear-gradient(135deg, rgba(255,230,240,0.95) 0%, rgba(255,200,220,0.85) 50%, rgba(255,180,200,0.6) 100%);
+      background: linear-gradient(135deg, rgba(200,150,170,0.6) 0%, rgba(160,110,140,0.5) 50%, rgba(120,80,110,0.3) 100%);
     }
 
     @keyframes feather-float {
@@ -132,7 +115,7 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: clamp(1rem, 2.5vw, 1.4rem);
-      color: rgba(80, 100, 140, 0.95);
+      color: rgba(220, 214, 235, 0.92);
       letter-spacing: 0.2em;
       z-index: 5;
       opacity: 0;
@@ -203,14 +186,12 @@
       left: 0;
       top: 0;
       border-radius: 50%;
-      background: radial-gradient(
-        circle,
-        rgba(255, 220, 235, 0.5) 0%,
-        rgba(255, 190, 210, 0.6) 40%,
-        rgba(255, 170, 195, 0.4) 70%,
-        transparent 100%
-      );
-      box-shadow: 0 0 60px 30px rgba(255, 180, 200, 0.3);
+      background: radial-gradient(circle,
+        rgba(150, 90, 130, 0.45) 0%,
+        rgba(110, 60, 100, 0.5) 45%,
+        rgba(70, 40, 80, 0.35) 70%,
+        transparent 100%);
+      box-shadow: 0 0 60px 30px rgba(120, 70, 120, 0.2);
       transform: translate(-50%, -50%);
       pointer-events: none;
       opacity: 0;
@@ -460,7 +441,6 @@
       const text = 'What dream do you want to live for?';
       const el = document.getElementById('final-question');
       const tapHint = document.getElementById('tap-hint');
-      document.getElementById('dream-scene').classList.add('deep-navy');
       document.getElementById('progress').parentElement.style.opacity = '0';
       el.style.opacity = '1';
       el.textContent = '';
@@ -633,7 +613,7 @@
           document.getElementById('sunrise-overlay').style.opacity = sunriseProgress;
           document.getElementById('dream-scene').style.opacity = 0;
           document.getElementById('dream-text').style.opacity = sunriseProgress * 0.9;
-          document.getElementById('title').style.color = `rgba(100, 130, 180, ${0.6 + sunriseProgress * 0.4})`;
+          document.getElementById('title').style.color = `rgba(220, 214, 235, ${0.6 + sunriseProgress * 0.4})`;
         }
         document.getElementById('stars-canvas').style.opacity = 1;
       } else {
@@ -643,7 +623,7 @@
         document.getElementById('dream-scene').style.opacity = dreamFadeIn;
         document.getElementById('stars-canvas').style.opacity = 1 - dreamFadeIn;
         document.getElementById('dream-text').style.opacity = dreamFadeIn;
-        document.getElementById('title').style.color = 'rgba(60, 90, 130, 0.95)';
+        document.getElementById('title').style.color = 'rgba(226, 220, 240, 0.95)';
         document.getElementById('title').style.opacity = 0.8;
       }
 
