@@ -47,6 +47,10 @@
       opacity: 0;
       pointer-events: none;
       z-index: 3;
+      transition: filter 1.8s ease;
+    }
+    body.scene-blur #dream-scene {
+      filter: blur(18px);
     }
 
     /* Stars canvas */
@@ -331,10 +335,33 @@
     .dream-input-hint.hidden {
       display: none;
     }
+    .dream-next {
+      position: fixed;
+      left: 50%;
+      top: calc(50% + 25vmin + 22px);
+      transform: translateX(-50%);
+      z-index: 12;
+      opacity: 0;
+      pointer-events: none;
+      font-family: 'Shippori Mincho', serif;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      letter-spacing: 0.16em;
+      color: rgba(150, 144, 176, 0.95);
+      background: rgba(40, 18, 36, 0.35);
+      border: 1px solid rgba(150, 144, 176, 0.7);
+      border-radius: 999px;
+      padding: 0.55em 1.6em;
+      cursor: pointer;
+      transition: opacity 1.6s ease 0.7s;
+    }
+    .dream-next.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
     .dream-actions {
       position: fixed;
       left: 50%;
-      top: calc(50% + 25vmin + 28px);
+      top: calc(50% + 25vmin + 78px);
       transform: translateX(-50%);
       z-index: 12;
       display: none;
@@ -414,6 +441,7 @@
       <div id="dream-textarea-overlay"></div>
     </div>
   </div>
+  <button type="button" class="dream-next" id="dream-next">Next</button>
   <div class="dream-actions" id="dream-actions">
     <button type="button" id="dream-stop">Stop</button>
     <button type="button" id="dream-back">Back</button>
@@ -553,31 +581,24 @@
       featherInterval = setInterval(createFeather, featherIntervalMs);
     }
 
-    // ========== Character-by-character display → tap to begin ==========
-    function showQuestionCharByChar() {
-      const text = 'What dream do you want to live for?';
-      const el = document.getElementById('final-question');
-      const tapHint = document.getElementById('tap-hint');
+    // ========== Daydreaming → dream writing, through a soft blur ==========
+    function beginWriteScene() {
+      document.body.classList.add('scene-blur');
+      const dreamText = document.getElementById('dream-text');
+      dreamText.style.transition = 'opacity 1.6s ease';
+      dreamText.style.opacity = '0';
+      document.getElementById('title').style.opacity = '0';
       document.getElementById('progress').parentElement.style.opacity = '0';
-      el.style.opacity = '1';
-      el.textContent = '';
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i < text.length) {
-          el.textContent += text[i];
-          i++;
-        } else {
-          clearInterval(interval);
-          setTimeout(() => {
-            tapHint.classList.add('visible');
-          }, 2000);
-          document.body.addEventListener('click', onTapForRipple, { once: true });
-          document.body.addEventListener('touchstart', onTapForRipple, { once: true, passive: false });
-        }
-      }, 350);
+      setTimeout(() => {
+        onTapForRipple({ cancelable: false, preventDefault() {} });
+        document.getElementById('dream-next').classList.add('visible');
+      }, 500);
+      setTimeout(() => {
+        document.body.classList.remove('scene-blur');
+      }, 2400);
     }
 
-    // ========== Tap for navy ripple + dream input (once only) ==========
+    // ========== Dream writing circle ==========
     let rippleCreated = false;
     let dreamInputAbort = null;
     let roseTimer = null;
@@ -626,6 +647,9 @@
       overlay.style.opacity = '0';
       document.getElementById('dream-input-hint').classList.remove('hidden');
       document.getElementById('dream-actions').classList.remove('visible');
+      document.getElementById('dream-next').classList.remove('visible');
+      document.body.classList.remove('scene-blur');
+      document.getElementById('dream-text').style.transition = '';
 
       const title = document.getElementById('title');
       title.style.transition = '';
@@ -698,10 +722,13 @@
       document.body.appendChild(container);
 
       const maxSize = Math.min(window.innerWidth, window.innerHeight) * 0.25;
+      ripple.style.width = maxSize * 2 + 'px';
+      ripple.style.height = maxSize * 2 + 'px';
+      ripple.style.opacity = '0';
       ripple.animate([
-        { width: '0', height: '0' },
-        { width: maxSize * 2 + 'px', height: maxSize * 2 + 'px' }
-      ], { duration: 30000, easing: 'ease-out', fill: 'forwards' });
+        { opacity: 0, filter: 'blur(16px)' },
+        { opacity: 1, filter: 'blur(0px)' }
+      ], { duration: 2200, easing: 'ease-in-out', fill: 'forwards' });
 
       pinkOverlay.style.width = maxSize * 2 + 'px';
       pinkOverlay.style.height = maxSize * 2 + 'px';
@@ -718,9 +745,9 @@
       overlay.style.opacity = '0';
       overlay.classList.remove('visible');
       wrapper.animate([
-        { opacity: 0 },
-        { opacity: 1 }
-      ], { duration: 1200, delay: 800, fill: 'forwards' }).onfinish = () => {
+        { opacity: 0, filter: 'blur(10px)' },
+        { opacity: 1, filter: 'blur(0px)' }
+      ], { duration: 2000, delay: 350, easing: 'ease-out', fill: 'forwards' }).onfinish = () => {
         wrapper.style.opacity = '1';
         overlay.style.opacity = '1';
         overlay.classList.add('visible');
@@ -795,7 +822,7 @@
 
       // 0-15 sec: in your dream... (starry sky → sunrise), then daydreaming
       // 15-35 sec: daydreaming (angel feathers for 20 sec)
-      // 35 sec+: question display
+      // 35 sec+: soft blur into the dream writing screen
 
       const progressIntro = Math.min(elapsed / DURATION_INTRO, 1);
       const inDreamScene = elapsed >= DURATION_INTRO;
@@ -845,9 +872,7 @@
         animationId = requestAnimationFrame(tick);
       } else {
         clearInterval(shootingStarInterval);
-        document.getElementById('dream-text').style.opacity = '0';
-        document.getElementById('title').style.opacity = '0';
-        showQuestionCharByChar();
+        beginWriteScene();
       }
     }
 
