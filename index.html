@@ -466,11 +466,53 @@
     const canvas = document.getElementById('stars-canvas');
     const ctx = canvas.getContext('2d');
     let stars = [];
+    const constellationShownAt = Date.now();
     const constellations = [
-      { stars: [[0.2, 0.15], [0.25, 0.2], [0.3, 0.18], [0.28, 0.25], [0.22, 0.22]], name: 'Orion' },
-      { stars: [[0.6, 0.2], [0.65, 0.25], [0.7, 0.22], [0.68, 0.28]], name: 'Cassiopeia' },
-      { stars: [[0.4, 0.35], [0.45, 0.4], [0.5, 0.38], [0.48, 0.45]], name: 'Big Dipper' },
-      { stars: [[0.75, 0.4], [0.8, 0.45], [0.85, 0.42]], name: 'Summer Triangle' },
+      {
+        name: 'Cassiopeia',
+        stars: [
+          { x: 0.06, y: 0.32, bright: true },
+          { x: 0.12, y: 0.43, bright: true },
+          { x: 0.18, y: 0.30, bright: true },
+          { x: 0.24, y: 0.42, bright: true },
+          { x: 0.30, y: 0.29, bright: true },
+        ],
+        lines: [[0, 1], [1, 2], [2, 3], [3, 4]],
+      },
+      {
+        name: 'Pegasus',
+        stars: [
+          { x: 0.56, y: 0.30, bright: true },
+          { x: 0.75, y: 0.33, bright: true },
+          { x: 0.72, y: 0.51, bright: true },
+          { x: 0.50, y: 0.47, bright: true },
+        ],
+        lines: [[0, 1], [1, 2], [2, 3], [3, 0]],
+      },
+      {
+        name: 'Andromeda',
+        stars: [
+          { x: 0.50, y: 0.47, anchor: true },
+          { x: 0.42, y: 0.55 },
+          { x: 0.34, y: 0.61 },
+          { x: 0.25, y: 0.67 },
+          { x: 0.30, y: 0.70 },
+        ],
+        lines: [[0, 1], [1, 2], [2, 3], [2, 4]],
+      },
+      {
+        name: 'Piscis Austrinus',
+        stars: [
+          { x: 0.60, y: 0.76, bright: true },
+          { x: 0.53, y: 0.72 },
+          { x: 0.45, y: 0.75 },
+          { x: 0.42, y: 0.82 },
+          { x: 0.47, y: 0.87 },
+          { x: 0.55, y: 0.88 },
+          { x: 0.62, y: 0.83 },
+        ],
+        lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 0]],
+      },
     ];
 
     function resize() {
@@ -507,23 +549,43 @@
         ctx.fill();
       });
 
-      // Constellations (connected by lines)
-      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      // Autumn constellations fade in slowly
+      const fadeU = Math.min((Date.now() - constellationShownAt) / 8000, 1);
+      const constellationFade = fadeU * fadeU * (3 - 2 * fadeU);
       ctx.lineWidth = 1;
+      ctx.lineCap = 'round';
       constellations.forEach(c => {
-        for (let i = 0; i < c.stars.length - 1; i++) {
-          const [x1, y1] = c.stars[i];
-          const [x2, y2] = c.stars[i + 1];
+        ctx.strokeStyle = `rgba(255,255,255,${0.25 * constellationFade})`;
+        c.lines.forEach(([a, b]) => {
+          const s1 = c.stars[a];
+          const s2 = c.stars[b];
           ctx.beginPath();
-          ctx.moveTo(x1 * canvas.width, y1 * canvas.height);
-          ctx.lineTo(x2 * canvas.width, y2 * canvas.height);
+          ctx.moveTo(s1.x * canvas.width, s1.y * canvas.height);
+          ctx.lineTo(s2.x * canvas.width, s2.y * canvas.height);
           ctx.stroke();
-        }
-        c.stars.forEach(([x, y]) => {
-          ctx.beginPath();
-          ctx.arc(x * canvas.width, y * canvas.height, 2, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255,255,255,0.9)';
-          ctx.fill();
+        });
+        c.stars.forEach(s => {
+          if (s.anchor) return;
+          const px = s.x * canvas.width;
+          const py = s.y * canvas.height;
+          if (s.bright) {
+            const glow = ctx.createRadialGradient(px, py, 0, px, py, 12);
+            glow.addColorStop(0, `rgba(255,255,255,${0.5 * constellationFade})`);
+            glow.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(px, py, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(px, py, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${0.95 * constellationFade})`;
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(px, py, 1.7, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${0.8 * constellationFade})`;
+            ctx.fill();
+          }
         });
       });
     }
