@@ -467,6 +467,7 @@
     const ctx = canvas.getContext('2d');
     let stars = [];
     const constellationShownAt = Date.now();
+    const CONSTELLATION_SCALE = 0.7;
     const constellations = [
       {
         name: 'Cassiopeia',
@@ -554,20 +555,32 @@
       const constellationFade = fadeU * fadeU * (3 - 2 * fadeU);
       ctx.lineWidth = 1;
       ctx.lineCap = 'round';
+      const pegasusStars = constellations.find(item => item.name === 'Pegasus').stars;
       constellations.forEach(c => {
+        const centerStars = c.name === 'Andromeda' ? pegasusStars : c.stars;
+        let cx = 0;
+        let cy = 0;
+        centerStars.forEach(s => { cx += s.x; cy += s.y; });
+        cx /= centerStars.length;
+        cy /= centerStars.length;
+        const place = (s) => ({
+          x: (cx + (s.x - cx) * CONSTELLATION_SCALE) * canvas.width,
+          y: (cy + (s.y - cy) * CONSTELLATION_SCALE) * canvas.height,
+        });
         ctx.strokeStyle = `rgba(255,255,255,${0.25 * constellationFade})`;
         c.lines.forEach(([a, b]) => {
-          const s1 = c.stars[a];
-          const s2 = c.stars[b];
+          const p1 = place(c.stars[a]);
+          const p2 = place(c.stars[b]);
           ctx.beginPath();
-          ctx.moveTo(s1.x * canvas.width, s1.y * canvas.height);
-          ctx.lineTo(s2.x * canvas.width, s2.y * canvas.height);
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
           ctx.stroke();
         });
         c.stars.forEach(s => {
           if (s.anchor) return;
-          const px = s.x * canvas.width;
-          const py = s.y * canvas.height;
+          const p = place(s);
+          const px = p.x;
+          const py = p.y;
           if (s.bright) {
             const glow = ctx.createRadialGradient(px, py, 0, px, py, 12);
             glow.addColorStop(0, `rgba(255,255,255,${0.5 * constellationFade})`);
