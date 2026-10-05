@@ -551,7 +551,7 @@
       });
 
       // Autumn constellations fade in slowly
-      const fadeU = Math.min((Date.now() - constellationShownAt) / 600, 1);
+      const fadeU = Math.min((Date.now() - constellationShownAt) / 3000, 1);
       const constellationFade = fadeU * fadeU * (3 - 2 * fadeU);
       ctx.lineWidth = 1;
       ctx.lineCap = 'round';
