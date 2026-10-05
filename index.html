@@ -466,7 +466,7 @@
     const canvas = document.getElementById('stars-canvas');
     const ctx = canvas.getContext('2d');
     let stars = [];
-    let constellationShownAt = null;
+    const constellationShownAt = Date.now();
     const constellations = [
       {
         name: 'Cassiopeia',
@@ -549,12 +549,9 @@
         ctx.fill();
       });
 
-      // Constellations rise as soon as the screen is tapped
-      let constellationFade = 0;
-      if (constellationShownAt !== null) {
-        const fadeU = Math.min((Date.now() - constellationShownAt) / 450, 1);
-        constellationFade = fadeU * fadeU * (3 - 2 * fadeU);
-      }
+      // Autumn constellations fade in slowly
+      const fadeU = Math.min((Date.now() - constellationShownAt) / 600, 1);
+      const constellationFade = fadeU * fadeU * (3 - 2 * fadeU);
       ctx.lineWidth = 1;
       ctx.lineCap = 'round';
       constellations.forEach(c => {
@@ -958,9 +955,6 @@
     }
 
     // ========== Start ==========
-    document.addEventListener('pointerdown', () => {
-      if (constellationShownAt === null) constellationShownAt = Date.now();
-    });
     document.getElementById('dream-next').addEventListener('click', showStopScreen);
     document.getElementById('dream-stop').addEventListener('click', stopDreamPlayback);
     document.getElementById('dream-back').addEventListener('click', returnToStart);
